@@ -7,7 +7,12 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "prisma skills sync || exit 0",
+    "prisma:generate": "prisma7 generate --config .config/prisma-orm.ts",
+    "db:migrate": "prisma7 migrate dev --config .config/prisma-orm.ts",
+    "db:deploy": "prisma7 migrate deploy --config .config/prisma-orm.ts",
+    "db:studio": "prisma7 studio --config .config/prisma-orm.ts"
   },
   "repository": {
     "type": "git",
@@ -20,10 +25,17 @@
   },
   "homepage": "https://github.com/golder78/makeup-system-#readme",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
     "cors": "^2.8.6",
     "dotenv": "^18.0.10",
     "express": "^5.3.0",
     "helmet": "^8.3.0",
-    "morgan": "^1.12.1"
+    "morgan": "^1.12.1",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@prisma/prisma7": "^7.10.1",
+    "prisma": "^8.0.0-rc.34"
   }
 }

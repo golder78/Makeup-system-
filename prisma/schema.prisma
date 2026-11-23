@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Client {
+  id       Int       @id @default(autoincrement())
+  name     String?
+  contact  String?
+  skinType String?   @map("skin_type")
+  bookings Booking[]
+  incomes  Income[]
+
+  @@map("clients")
+}
+
+model Booking {
+  id         Int      @id @default(autoincrement())
+  clientId   Int?     @map("client_id")
+  location   String?
+  totalPrice Float?   @map("total_price")
+  deposit    Float?
+  status     String?
+  date       DateTime?
+  notes      String?
+  client     Client?  @relation(fields: [clientId], references: [id])
+  incomes    Income[]
+
+  @@map("bookings")
+}
+
+model Inventory {
+  id         Int       @id @default(autoincrement())
+  name       String?
+  brand      String?
+  quantity   Float?
+  category   String?
+  expiryDate DateTime? @map("expiry_date") @db.Date
+  expenses   Expense[]
+
+  @@map("inventories")
+}
+
+model Income {
+  id            Int       @id @default(autoincrement())
+  bookingId     Int?      @map("booking_id")
+  clientId      Int?      @map("client_id")
+  source        String?
+  description   String?
+  amount        Float?
+  paymentMethod String?   @map("payment_method")
+  paymentStatus String?   @map("payment_status")
+  date          DateTime?
+  booking       Booking?  @relation(fields: [bookingId], references: [id])
+  client        Client?   @relation(fields: [clientId], references: [id])
+
+  @@map("income")
+}
+
+model Expense {
+  id            Int        @id @default(autoincrement())
+  inventoryId   Int?       @map("inventory_id")
+  category      String?
+  description   String?
+  amount        Float?
+  paymentMethod String?    @map("payment_method")
+  supplier      String?
+  receiptNo     String?    @map("receipt_no")
+  date          DateTime?
+  inventory     Inventory? @relation(fields: [inventoryId], references: [id])
+
+  @@map("expenses")
+}
