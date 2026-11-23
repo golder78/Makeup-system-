@@ -13,6 +13,17 @@ Use `npm run db:deploy` to apply committed migrations in a deployed environment,
 and `npm run db:studio` to open Prisma Studio. The app is started with
 `npm run dev`.
 
+## Frontend
+
+The dependency-free frontend in `frontend/` is served by the backend. Its
+JavaScript is split into `js/app.js` (startup and event wiring), `js/pages.js`
+(screen loading and rendering), `js/forms.js` (record forms and submissions),
+`js/api.js` (authenticated API requests), and `js/core.js` (shared state and
+formatting). Start the app with `npm run dev`, then open
+`http://localhost:3000`. Sign in with a user you have created in the database.
+The frontend and API share an origin, so authenticated requests use the
+existing HTTP-only session cookie.
+
 # Backend progress
 
 ## Implemented
