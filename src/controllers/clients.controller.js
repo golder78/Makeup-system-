@@ -1,50 +1,31 @@
 import { prisma } from "../db/prisma.js";
+import { parseId, parseFields } from "../utils/helpers.js";
 
-function parseId(value) {
-  const id = Number(value);
-  return Number.isInteger(id) && id > 0 ? id : null;
-}
+const isText = (value) => typeof value === "string" && value.trim() !== "";
+
+const clientFields = {
+  name: isText,
+  contact: (value) => value === null || typeof value === "string",
+  skinType: (value) => value === null || typeof value === "string",
+};
 
 function parseClientData(body, { creating = false } = {}) {
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    return { error: "Request body must be a JSON object." };
-  }
+  const result = parseFields(
+    body,
+    clientFields,
+    creating ? { required: ["name"] } : { requireAny: true },
+  );
+  if (result.error) return result;
 
-  const fields = ["name", "contact", "skinType"];
-  const entries = Object.entries(body);
-  if (entries.length === 0) {
-    return { error: "Provide at least one client field." };
+  if (result.data.name !== undefined) {
+    result.data.name = result.data.name.trim();
   }
-
-  const data = {};
-  for (const [field, value] of entries) {
-    if (!fields.includes(field)) {
-      return { error: `Unknown client field: ${field}.` };
-    }
-    if (field === "name") {
-      if (typeof value !== "string" || value.trim() === "") {
-        return { error: "Client name must be a non-empty string." };
-      }
-      data.name = value.trim();
-    } else if (value !== null && typeof value !== "string") {
-      return { error: `Client ${field} must be a string or null.` };
-    } else {
-      data[field] = value;
-    }
-  }
-
-  if (creating && !data.name) {
-    return { error: "Client name is required." };
-  }
-
-  return { data };
+  return result;
 }
 
 export async function listClients(req, res, next) {
   try {
-    const clients = await prisma.client.findMany({
-      orderBy: { name: "asc" },
-    });
+    const clients = await prisma.client.findMany({ orderBy: { name: "asc" } });
     res.json(clients);
   } catch (error) {
     next(error);
@@ -54,7 +35,9 @@ export async function listClients(req, res, next) {
 export async function getClient(req, res, next) {
   const id = parseId(req.params.id);
   if (id === null) {
-    return res.status(400).json({ error: "Client id must be a positive integer." });
+    return res
+      .status(400)
+      .json({ error: "Client id must be a positive integer." });
   }
 
   try {
@@ -88,7 +71,9 @@ export async function createClient(req, res, next) {
 export async function updateClient(req, res, next) {
   const id = parseId(req.params.id);
   if (id === null) {
-    return res.status(400).json({ error: "Client id must be a positive integer." });
+    return res
+      .status(400)
+      .json({ error: "Client id must be a positive integer." });
   }
 
   const result = parseClientData(req.body);
@@ -110,7 +95,9 @@ export async function updateClient(req, res, next) {
 export async function deleteClient(req, res, next) {
   const id = parseId(req.params.id);
   if (id === null) {
-    return res.status(400).json({ error: "Client id must be a positive integer." });
+    return res
+      .status(400)
+      .json({ error: "Client id must be a positive integer." });
   }
 
   try {
