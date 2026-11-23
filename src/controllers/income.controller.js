@@ -1,49 +1,39 @@
 import { prisma } from "../db/prisma.js";
+import { parseId, parseFields } from "../utils/helpers.js";
+
+const isDateString = (value) =>
+  typeof value === "string" && !Number.isNaN(Date.parse(value));
 
 const incomeFields = {
-  bookingId: (value) => value === null || (Number.isInteger(value) && value > 0),
+  bookingId: (value) =>
+    value === null || (Number.isInteger(value) && value > 0),
   clientId: (value) => value === null || (Number.isInteger(value) && value > 0),
-  source: (value) => value === null || ["booking", "product_sale", "tip", "other"].includes(value),
+  source: (value) =>
+    value === null ||
+    ["booking", "product_sale", "tip", "other"].includes(value),
   description: (value) => value === null || typeof value === "string",
-  amount: (value) => value === null || (typeof value === "number" && Number.isFinite(value) && value >= 0),
+  amount: (value) =>
+    value === null ||
+    (typeof value === "number" && Number.isFinite(value) && value >= 0),
   paymentMethod: (value) =>
     value === null || ["cash", "mpesa", "card", "bank"].includes(value),
-  paymentStatus: (value) => value === null || ["paid", "partial", "pending"].includes(value),
-  date: (value) => value === null || (typeof value === "string" && !Number.isNaN(Date.parse(value))),
+  paymentStatus: (value) =>
+    value === null || ["paid", "partial", "pending"].includes(value),
+  date: (value) => value === null || isDateString(value),
 };
 
-function parseId(value) {
-  const id = Number(value);
-  return Number.isInteger(id) && id > 0 ? id : null;
-}
-
 function parseIncomeData(body, { creating = false } = {}) {
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    return { error: "Request body must be a JSON object." };
-  }
+  const result = parseFields(
+    body,
+    incomeFields,
+    creating ? { required: ["source", "amount"] } : { requireAny: true },
+  );
+  if (result.error) return result;
 
-  const entries = Object.entries(body);
-  if (entries.length === 0) {
-    return { error: "Provide at least one income field." };
+  if (typeof result.data.date === "string") {
+    result.data.date = new Date(result.data.date);
   }
-
-  const data = {};
-  for (const [field, value] of entries) {
-    const validate = incomeFields[field];
-    if (!validate) {
-      return { error: `Unknown income field: ${field}.` };
-    }
-    if (!validate(value)) {
-      return { error: `Invalid value for income field: ${field}.` };
-    }
-    data[field] = field === "date" && value !== null ? new Date(value) : value;
-  }
-
-  if (creating && (typeof data.source !== "string" || typeof data.amount !== "number")) {
-    return { error: "Income source and amount are required." };
-  }
-
-  return { data };
+  return result;
 }
 
 export async function listIncome(req, res, next) {
@@ -61,7 +51,9 @@ export async function listIncome(req, res, next) {
 export async function getIncome(req, res, next) {
   const id = parseId(req.params.id);
   if (id === null) {
-    return res.status(400).json({ error: "Income id must be a positive integer." });
+    return res
+      .status(400)
+      .json({ error: "Income id must be a positive integer." });
   }
 
   try {
@@ -98,7 +90,9 @@ export async function createIncome(req, res, next) {
 export async function updateIncome(req, res, next) {
   const id = parseId(req.params.id);
   if (id === null) {
-    return res.status(400).json({ error: "Income id must be a positive integer." });
+    return res
+      .status(400)
+      .json({ error: "Income id must be a positive integer." });
   }
 
   const result = parseIncomeData(req.body);
@@ -121,7 +115,9 @@ export async function updateIncome(req, res, next) {
 export async function deleteIncome(req, res, next) {
   const id = parseId(req.params.id);
   if (id === null) {
-    return res.status(400).json({ error: "Income id must be a positive integer." });
+    return res
+      .status(400)
+      .json({ error: "Income id must be a positive integer." });
   }
 
   try {

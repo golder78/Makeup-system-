@@ -6,8 +6,11 @@ import bookingsRouter from "./routes/bookings.routes.js";
 import clientsRouter from "./routes/clients.routes.js";
 import inventoryRouter from "./routes/inventory.routes.js";
 import incomeRouter from "./routes/income.routes.js";
+import authRouter from "./routes/auth.routes.js";
+import servicesRouter from "./routes/services.routes.js";
 import expensesRouter from "./routes/expenses.routes.js";
 import { errorHandler } from "./middleware/error-handler.js";
+import { requireAuth } from "./middleware/require-auth.js";
 
 const app = express();
 app.use(helmet());
@@ -20,11 +23,15 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-app.use("/api/bookings", bookingsRouter);
-app.use("/api/clients", clientsRouter);
-app.use("/api/inventory", inventoryRouter);
-app.use("/api/income", incomeRouter);
-app.use("/api/expenses", expensesRouter);
+app.use("/api/auth", authRouter);
+// Protected
+app.use("/api/clients", requireAuth, clientsRouter);
+app.use("/api/bookings", requireAuth, bookingsRouter);
+app.use("/api/services", requireAuth, servicesRouter);
+app.use("/api/inventory", requireAuth, inventoryRouter);
+app.use("/api/income", requireAuth, incomeRouter);
+app.use("/api/expenses", requireAuth, expensesRouter);
+app.use("/api/reports", requireAuth, reportsRouter);
 
 // 404 handler (za  all routes)
 app.use((req, res) => {
