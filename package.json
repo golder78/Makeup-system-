@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "dev": "node --watch src/index.js",
+    "dev": "tsx watch src/index.js",
     "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "prisma skills sync || exit 0",
@@ -13,7 +13,7 @@
     "db:migrate": "prisma7 migrate dev --config .config/prisma-orm.ts",
     "db:deploy": "prisma7 migrate deploy --config .config/prisma-orm.ts",
     "db:studio": "prisma7 studio --config .config/prisma-orm.ts",
-    "create-user": "node scripts/create-user.js"
+    "create-user": "tsx scripts/create-user.js"
   },
   "repository": {
     "type": "git",
@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "@prisma/prisma7": "^7.10.1",
-    "prisma": "^8.0.0-rc.34"
+    "prisma": "^8.0.0-rc.34",
+    "tsx": "^4.23.15"
   }
 }
